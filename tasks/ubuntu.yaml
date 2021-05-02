@@ -1,0 +1,29 @@
+- name: Add an Apt signing key
+  ansible.builtin.apt_key:
+    url: https://packages.gitlab.com/gitlab/gitlab-ee/gpgkey
+    state: present
+
+- name: Add gitlab repository into sources list
+  ansible.builtin.apt_repository:
+    repo: deb https://packages.gitlab.com/gitlab/gitlab-ee/ubuntu/ {{ ansible_distribution_release }} main
+    state: present
+    filename: gitlab
+
+- name: Install gitlab dependancies
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - curl
+    - openssh-server
+    - ca-certificates
+    - tzdata
+    - perl
+
+- name: Install the gitlab package & initialise gitlab
+  ansible.builtin.apt:
+    name: "gitlab-ee"
+    state: present
+  environment:
+    EXTERNAL_URL={{ gitlab_url }}
+  when: install_gitlab_package
